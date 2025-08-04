@@ -9,7 +9,7 @@ class PromptService:
     @staticmethod
     async def prompt(db, prompt: str, output_format: BaseModel, model_name: str = "gpt-4o"):
         """
-        Create a new prompt with the given title.
+        Create a new prompt with the given prompt.
         """
         # Create the model
         model = from_openai(

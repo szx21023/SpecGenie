@@ -13,7 +13,7 @@ class PromptService:
         """
         # Create the model
         model = from_openai(
-            OpenAI(api_key=app.state.config.get("OPENAI_API_KEY")),
+            app.state.openai_client,
             "gpt-4o"
         )
 

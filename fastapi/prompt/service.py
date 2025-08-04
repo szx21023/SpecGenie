@@ -7,15 +7,29 @@ from typing import List
 
 class PromptService:
     @staticmethod
-    async def create_prompt(db, prompt: str):
+    async def prompt(db, prompt: str, output_format: BaseModel, model_name: str = "gpt-4o"):
         """
         Create a new prompt with the given title.
         """
         # Create the model
         model = from_openai(
             app.state.openai_client,
-            "gpt-4o"
+            model_name
         )
+
+        ir_result = model(
+            prompt,
+            output_format
+        )
+
+        ir = output_format.model_validate_json(ir_result)
+        return ir.model_dump()
+
+    @staticmethod
+    async def create_prompt(db, prompt: str):
+        """
+        Test the prompt with the given ID.
+        """
 
         class Field(BaseModel):
             name: str
@@ -39,13 +53,15 @@ class PromptService:
             entities: List[Entity]
             apis: List[API]
 
-        ir_result = model(
-            "我要建立一個系統來管理使用者與書籍，並記錄誰借了哪些書。",
-            IR
-        )
+        ir = await PromptService.prompt(db, prompt, IR)
+        for api in ir['apis']:
+            print(api.get('method'), api.get('path'))
+            print(api.get('operation'), api.get('entity'))
+            print('Request Fields:', api.get('request_fields'))
+            print('Response Fields:', api.get('response_fields'))
+            print('-------')
 
-        ir = IR.model_validate_json(ir_result)
-        for entity in ir.model_dump()['entities']:
+        for entity in ir['entities']:
             print(entity.get('name'))
             for field in entity.get('fields'):
                 print(field)

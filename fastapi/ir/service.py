@@ -24,24 +24,10 @@ class IRService:
     
     @staticmethod
     async def get_ir(db):
-        sql = select(IR).where()
+        sql = select(IR)
         result = await db.execute(sql)
         irs = result.scalars().all()
 
         schema = IRSchema()
         irs = schema.dump(irs, many=True)
-
-        for ir in irs:
-            for api in ir.get('apis'):
-                print(api.get('method'), api.get('path'))
-                print(api.get('operation'), api.get('entity'))
-                print('Request Fields:', api.get('request_fields'))
-                print('Response Fields:', api.get('response_fields'))
-                print('-------')
-
-            for entity in ir.get('entities'):
-                print(entity.get('name'))
-                for field in entity.get('fields'):
-                    print(field)
-                print('-------')
         return irs

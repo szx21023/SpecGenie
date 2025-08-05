@@ -22,3 +22,9 @@ class API(BaseModel):
 class IR(BaseModel):
     entities: List[Entity]
     apis: List[API]
+
+from marshmallow import fields, Schema
+
+class IRSchema(Schema):
+    entities = fields.List(fields.Dict)
+    apis = fields.List(fields.Dict)

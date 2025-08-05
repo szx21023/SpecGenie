@@ -4,6 +4,7 @@ from outlines import from_openai
 from pydantic import BaseModel
 
 from ir.schema import IR
+from ir.service import IRService
 
 class PromptService:
     @staticmethod
@@ -32,17 +33,5 @@ class PromptService:
         """
 
         ir = await PromptService.prompt(db, prompt, IR)
-        for api in ir['apis']:
-            print(api.get('method'), api.get('path'))
-            print(api.get('operation'), api.get('entity'))
-            print('Request Fields:', api.get('request_fields'))
-            print('Response Fields:', api.get('response_fields'))
-            print('-------')
-
-        for entity in ir['entities']:
-            print(entity.get('name'))
-            for field in entity.get('fields'):
-                print(field)
-            print('-------')
-
-        return {"message": f"Prompt '{prompt}' created successfully."}
+        result = await IRService.create_ir(db, ir)
+        return result

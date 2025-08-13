@@ -24,10 +24,52 @@ class IRService:
     
     @staticmethod
     async def get_ir(db):
-        sql = select(IR)
-        result = await db.execute(sql)
-        irs = result.scalars().all()
+        # sql = select(IR)
+        # result = await db.execute(sql)
+        # irs = result.scalars().all()
 
-        schema = IRSchema()
-        irs = schema.dump(irs, many=True)
-        return irs
+        # schema = IRSchema()
+        # irs = schema.dump(irs, many=True)
+        # return irs
+
+        return [
+            {
+                'id': 'node-1',
+                'type': 'myNode',
+                'position': { 'x': 0, 'y': 0 },
+                'data': { 
+                    'name': 'user',
+                    'row': [
+                        { 'field': 'name', 'type': 'string', 'value': 'Alice' },
+                        { 'field': 'age', 'type': 'integer', 'value': '25' },
+                        { 'field': 'job', 'type': 'string', 'value': 'Engineer' }
+                    ]
+                }
+            },
+            {
+                'id': 'node-2',
+                'type': 'myNode',
+                'position': { 'x': 0, 'y': 100 },
+                'data': { 
+                    'name': 'customer',
+                    'row': [
+                        { 'field': 'name', 'type': 'string', 'value': 'Herry' },
+                        { 'field': 'age', 'type': 'integer', 'value': '30' },
+                        { 'field': 'job', 'type': 'string', 'value': 'PM' }
+                    ]
+                }
+            },
+            {
+                'id': 'node-3',
+                'type': 'myNode',
+                'position': { 'x': 0, 'y': 200 },
+                'data': { 
+                    'name': 'worker',
+                    'row': [
+                        { 'field': 'name', 'type': 'string', 'value': 'Judy' },
+                        { 'field': 'age', 'type': 'integer', 'value': '18' },
+                        { 'field': 'job', 'type': 'string', 'value': 'QA' }
+                    ]
+                }
+            }
+        ]

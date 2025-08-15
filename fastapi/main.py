@@ -5,6 +5,7 @@ from version import version
 from ext.openai import init_app as init_openai_app
 from ir import init_app as init_ir_app
 from prompt import init_app as init_prompt_app
+from tables import init_app as init_tables_app
 
 class AppFactory(BaseFactory):
     def get_app_config(self):
@@ -20,6 +21,7 @@ class AppFactory(BaseFactory):
         async def initail_app():
             await init_ir_app(app)
             await init_prompt_app(app)
+            await init_tables_app(app)
 
             app.state.openai_client = await init_openai_app(app)
 

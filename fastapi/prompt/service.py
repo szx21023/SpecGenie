@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from ir.schema import IR
 from ir.service import IRService
+from tables.service import TablesService
 
 class PromptService:
     @staticmethod
@@ -34,4 +35,8 @@ class PromptService:
 
         ir = await PromptService.prompt(db, prompt, IR)
         result = await IRService.create_ir(db, ir)
+
+        for entity in result['entities']:
+            await TablesService.create_table(db, entity)
+
         return result

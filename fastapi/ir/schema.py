@@ -1,15 +1,15 @@
 from pydantic import BaseModel
 from typing import List
 
-class Field(BaseModel):
+class Column(BaseModel):
     name: str
     type: str
-    primary: bool
-    foreign_key: str  # 如果不能為空，這樣寫；若允許 null 要加特別處理
+    nullable: bool
 
 class Entity(BaseModel):
     name: str
-    fields: List[Field]
+    description: str
+    columns: List[Column]
 
 class API(BaseModel):
     method: str

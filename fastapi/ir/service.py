@@ -20,8 +20,8 @@ class IRService:
             await db.rollback()
             raise e
 
-        return ir
-    
+        return data
+
     @staticmethod
     async def get_ir(db):
         sql = select(IR)

@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from ir.schema import IR
 from ir.service import IRService
+from tables.service import TablesService
 
 class PromptService:
     @staticmethod
@@ -33,5 +34,18 @@ class PromptService:
         """
 
         ir = await PromptService.prompt(db, prompt, IR)
+        # ir = None
         result = await IRService.create_ir(db, ir)
+        for entity in result['entities']:
+            print(entity['name'])
+            l = []
+            for field in entity['columns']:
+                l.append({
+                    'name': field['name'],
+                    'type': field['type'],
+                    'nullable': False
+                })
+            entity['columns'] = l
+
+            await TablesService.create_table(db, entity)
         return result

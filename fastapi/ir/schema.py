@@ -14,8 +14,8 @@ class Entity(BaseModel):
 class API(BaseModel):
     method: str
     path: str
-    operation: str
-    entity: str
+    # operation: str
+    # entity: str
     request_fields: List[str]
     response_fields: List[str]
 

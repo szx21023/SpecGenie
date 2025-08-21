@@ -1,6 +1,8 @@
 from main import app
 from sqlalchemy import select
 
+from apis.service import ApisService
+from tables.service import TablesService
 from .schema import IRSchema
 from .model import IR
 
@@ -24,10 +26,9 @@ class IRService:
 
     @staticmethod
     async def get_ir(db):
-        sql = select(IR)
-        result = await db.execute(sql)
-        irs = result.scalars().all()
+        apis = await ApisService.get_apis(db)
+        tables = await TablesService.get_tables(db)
 
         schema = IRSchema()
-        irs = schema.dump(irs, many=True)
+        irs = schema.load({'apis': apis, 'entities': tables})
         return irs

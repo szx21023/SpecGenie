@@ -7,6 +7,17 @@ from .service import PromptService
 
 router = APIRouter(prefix=f"/prompt", tags=["prompt"])
 
+@router.get("")
+async def get_prompts(
+        db: AsyncSession = Depends(get_db)
+    ):
+    """
+    get prompts api
+    """
+
+    result = await PromptService.get_prompts(db)
+    return result
+
 @router.post("")
 async def create_prompt( 
         schema = Body(example={

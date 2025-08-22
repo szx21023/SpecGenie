@@ -1,4 +1,5 @@
 from main import app
+from sqlalchemy import select
 
 from outlines import from_openai
 from pydantic import BaseModel
@@ -7,6 +8,9 @@ from ir.schema import IR
 from ir.service import IRService
 from apis.service import ApisService
 from tables.service import TablesService
+
+from .model import Prompts
+from .schema import PromptSchema
 
 class PromptService:
     @staticmethod
@@ -43,4 +47,27 @@ class PromptService:
         for entity in result['entities']:
             await TablesService.create_table(db, entity)
 
+        schema = PromptSchema()
+        data = schema.load({"prompt": prompt})
+
+        prompt = Prompts(**data)
+        db.add(prompt)
+        try:
+            await db.commit()
+            await db.refresh(prompt)
+
+        except Exception as e:
+            await db.rollback()
+            raise e
+
         return result
+
+    @staticmethod
+    async def get_prompts(db):
+        sql = select(Prompts)
+        result = await db.execute(sql)
+        prompts = result.scalars().all()
+
+        schema = PromptSchema(many=True)
+        prompts = schema.dump(prompts)
+        return prompts

@@ -40,3 +40,14 @@ async def update_table(
 
     result = await TablesService.update_table(db, table_id, schema)
     return result
+
+@router.delete("/{table_id}")
+async def delete_table(
+        table_id: int, db: AsyncSession = Depends(get_db)
+    ):
+    """
+    delete table api
+    """
+
+    result = await TablesService.delete_table(db, table_id)
+    return result

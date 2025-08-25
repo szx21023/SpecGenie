@@ -7,6 +7,6 @@ class TableColumnSchema(Schema):
 
 class TablesSchema(Schema):
     id = fields.Int(dump_only=True)
-    name = fields.Str(required=True)
-    description = fields.Str(required=True)
-    columns = fields.List(fields.Nested(TableColumnSchema), required=True)
+    name = fields.Str()
+    description = fields.Str()
+    columns = fields.List(fields.Nested(TableColumnSchema))

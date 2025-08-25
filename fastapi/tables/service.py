@@ -54,6 +54,21 @@ class TablesService:
         return table
 
     @staticmethod
+    async def delete_table(db, table_id):
+        if not (table := await TablesService.get_table_by_id(db, table_id)):
+            raise Exception("Table not found")
+
+        try:
+            await db.delete(table)
+            await db.commit()
+
+        except Exception as e:
+            await db.rollback()
+            raise e
+
+        return table
+
+    @staticmethod
     async def get_table_by_id(db, table_id):
         sql = select(Tables).where(Tables.id == table_id)
         result = await db.execute(sql)

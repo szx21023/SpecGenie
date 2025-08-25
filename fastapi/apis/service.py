@@ -54,6 +54,21 @@ class ApisService:
         return api
 
     @staticmethod
+    async def delete_api(db, api_id):
+        if not (api := await ApisService.get_api_by_id(db, api_id)):
+            raise Exception("Api not found")
+
+        try:
+            await db.delete(api)
+            await db.commit()
+
+        except Exception as e:
+            await db.rollback()
+            raise e
+
+        return api
+
+    @staticmethod
     async def get_api_by_id(db, api_id):
         sql = select(Apis).where(Apis.id == api_id)
         result = await db.execute(sql)

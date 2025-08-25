@@ -42,3 +42,15 @@ async def update_api(
 
     result = await ApisService.update_api(db, api_id, schema)
     return result
+
+@router.delete("/{api_id}")
+async def delete_api(
+        api_id: int,
+        db: AsyncSession = Depends(get_db)
+    ):
+    """
+    delete api
+    """
+
+    result = await ApisService.delete_api(db, api_id)
+    return result

@@ -29,3 +29,14 @@ async def create_table(
 
     result = await TablesService.create_table(db, schema)
     return result
+
+@router.patch("/{table_id}")
+async def update_table(
+        table_id: int, schema = Body(example=CREATE_TABLE_EXAMPLE), db: AsyncSession = Depends(get_db)
+    ):
+    """
+    update table api
+    """
+
+    result = await TablesService.update_table(db, table_id, schema)
+    return result

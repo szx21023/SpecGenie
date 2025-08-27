@@ -65,10 +65,10 @@ class PromptService:
         return prompts
 
     @staticmethod
-    async def prompt_to_model(db, prompt: str):
+    async def prompt_to_model(db, user_prompt: str):
         irs = await IRService.get_ir(db)
         app.logger.info(f'irs: {irs}')
-        prompt = prompt + "\n\n" + "目前的規格如下:\n" + str(irs)
+        prompt = user_prompt + "\n\n" + "目前的規格如下:\n" + str(irs)
 
         operators = await PromptService.prompt(db, prompt, Plan)
         app.logger.info(operators)
@@ -117,7 +117,7 @@ class PromptService:
             else:
                 pass
 
-        result = await PromptService.create_prompt(db, prompt)
+        result = await PromptService.create_prompt(db, user_prompt)
         return result
 
     @staticmethod

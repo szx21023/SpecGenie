@@ -30,5 +30,5 @@ async def create_prompt(
     """
 
     prompt = schema.get('prompt')
-    result = await PromptService.prompt_to_model(db, prompt=prompt)
+    result = await PromptService.prompt_to_model(db, user_prompt=prompt)
     return result

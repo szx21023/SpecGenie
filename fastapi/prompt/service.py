@@ -9,6 +9,7 @@ from ir.service import IRService
 from apis.service import ApisService
 from tables.service import TablesService
 
+from .const import Ops, IrTypes
 from .model import Prompts
 from .schema import PromptSchema, Plan
 
@@ -74,25 +75,25 @@ class PromptService:
         for operator in operators.get('operations'):
             ops = operator.get('kind')
             by, value = operator.get('target', {}).get('by'), operator.get('target', {}).get('value')
-            if ops == 'add_table':
+            if ops == Ops.ADD_TABLE:
                 data = {
                     'name': operator.get('name'),
                     'columns': operator.get('columns', [])
                 }
                 await TablesService.create_table(db, data)
 
-            elif ops == 'update_table':
-                current_table = await PromptService.get_current_spec(irs, 'entity', by, value)
+            elif ops == Ops.UPDATE_TABLE:
+                current_table = await PromptService.get_current_spec(irs, IrTypes.ENTITY, by, value)
                 data = {
                     'columns': operator.get('final_columns', [])
                 }
                 await TablesService.update_table(db, int(current_table.get('id')), data)
 
-            elif ops == 'drop_table':
-                current_table = await PromptService.get_current_spec(irs, 'entity', by, value)
+            elif ops == Ops.DROP_TABLE:
+                current_table = await PromptService.get_current_spec(irs, IrTypes.ENTITY, by, value)
                 await TablesService.delete_table(db, int(current_table.get('id')))
 
-            elif ops == 'add_api':
+            elif ops == Ops.ADD_API:
                 data = {
                     'method': operator.get('method'),
                     'path': operator.get('path'),
@@ -101,16 +102,16 @@ class PromptService:
                 }
                 await ApisService.create_api(db, data)
 
-            elif ops == 'update_api':
-                current_api = await PromptService.get_current_spec(irs, 'api', by, value)
+            elif ops == Ops.UPDATE_API:
+                current_api = await PromptService.get_current_spec(irs, IrTypes.API, by, value)
                 data = {
                     'request_fields': operator.get('final_request_fields', []),
                     'response_fields': operator.get('final_response_fields', [])
                 }
                 await ApisService.update_api(db, int(current_api.get('id')), data)
 
-            elif ops == 'drop_api':
-                current_api = await PromptService.get_current_spec(irs, 'api', by, value)
+            elif ops == Ops.DROP_API:
+                current_api = await PromptService.get_current_spec(irs, IrTypes.API, by, value)
                 await ApisService.delete_api(db, int(current_api.get('id')))
 
             else:
@@ -121,7 +122,7 @@ class PromptService:
 
     @staticmethod
     async def get_current_spec(irs, type, by, value):
-        if type == 'entity':
+        if type == IrTypes.ENTITY:
             entities = irs.get('entities', [])
             for entity in entities:
                 if str(entity.get(by)) != str(value):
@@ -129,7 +130,7 @@ class PromptService:
 
                 return entity
 
-        elif type == 'api':
+        elif type == IrTypes.API:
             apis = irs.get('apis', [])
             for api in apis:
                 if str(api.get(by)) != str(value):

@@ -117,7 +117,7 @@ class PromptService:
             else:
                 pass
 
-        result = PromptService.create_prompt(db, prompt)
+        result = await PromptService.create_prompt(db, prompt)
         return result
 
     @staticmethod

@@ -105,6 +105,8 @@ class PromptService:
             elif ops == Ops.UPDATE_API:
                 current_api = await PromptService.get_current_spec(irs, IrTypes.API, by, value)
                 data = {
+                    'method': operator.get('method', current_api.get('method')),
+                    'path': operator.get('path', current_api.get('path')),
                     'request_fields': operator.get('final_request_fields', []),
                     'response_fields': operator.get('final_response_fields', [])
                 }

@@ -32,18 +32,3 @@ async def create_prompt(
     prompt = schema.get('prompt')
     result = await PromptService.prompt_to_model(db, prompt=prompt)
     return result
-
-@router.post("/test")
-async def create_test_data( 
-        schema = Body(example={
-            'prompt': 'Sample Prompt',
-        }),
-        db: AsyncSession = Depends(get_db)
-    ):
-    """
-    post test data api
-    """
-
-    prompt = schema.get('prompt')
-    result = await PromptService.create_test_prompt(db, prompt=prompt)
-    return result

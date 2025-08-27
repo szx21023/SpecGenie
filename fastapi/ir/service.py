@@ -32,8 +32,3 @@ class IRService:
         schema = IRSchema()
         irs = schema.load({'apis': apis, 'entities': tables})
         return irs
-    
-    @staticmethod
-    async def get_test_data():
-        from test_data import ir_test_data
-        return ir_test_data

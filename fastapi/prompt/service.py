@@ -38,15 +38,6 @@ class PromptService:
         Test the prompt with the given ID.
         """
 
-        # ir = await PromptService.prompt(db, prompt, IR)
-        # result = await IRService.create_ir(db, ir)
-
-        # for api in result['apis']:
-        #     await ApisService.create_api(db, api)
-
-        # for entity in result['entities']:
-        #     await TablesService.create_table(db, entity)
-
         schema = PromptSchema()
         data = schema.load({"prompt": prompt})
 

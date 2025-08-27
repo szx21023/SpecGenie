@@ -5,8 +5,8 @@ class PromptSchema(Schema):
     prompt = fields.Str(required=True)
 
 # fastapi/planner/schema.py
-from typing import List, Literal, Optional, Union, Annotated
-from pydantic import BaseModel, Field
+from typing import List, Literal
+from pydantic import BaseModel
 
 class ColumnDef(BaseModel):
     name: str
@@ -30,9 +30,6 @@ class UpdateTable(BaseModel):
     kind: Literal["update_table"]
     target: TableSelector
     final_columns: List[ColumnDef]
-    # add_columns: List[ColumnDef]
-    # update_columns: List[ColumnDef]
-    # drop_columns: List[str]
 
 class DropTable(BaseModel):
     kind: Literal["drop_table"]
@@ -51,10 +48,6 @@ class UpdateApi(BaseModel):
     target: ApiSelector
     final_request_fields: List[str]
     final_response_fields: List[str]
-    # add_request_fields: List[str]
-    # drop_request_fields: List[str]
-    # add_response_fields: List[str]
-    # drop_response_fields: List[str]
 
 class DropApi(BaseModel):
     kind: Literal["drop_api"]

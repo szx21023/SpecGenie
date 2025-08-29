@@ -9,7 +9,7 @@ from ir.service import IRService
 from apis.service import ApisService
 from tables.service import TablesService
 
-from .const import Ops, IrTypes, PROMPT_TEMPLATE, ModeTypes
+from .const import Ops, IrTypes, PROMPT_TEMPLATE, ModeTypes, RoleTypes
 from .model import Prompts
 from .schema import PromptSchema, Plan, Advice
 
@@ -35,13 +35,13 @@ class PromptService:
         return r.model_dump()
 
     @staticmethod
-    async def create_prompt(db, prompt: str, mode: str):
+    async def create_prompt(db, prompt: str, mode: str, role: str):
         """
         Test the prompt with the given ID.
         """
 
         schema = PromptSchema()
-        data = schema.load({"prompt": prompt, "mode": mode})
+        data = schema.load({"prompt": prompt, "mode": mode, "role": role})
 
         prompt = Prompts(**data)
         db.add(prompt)
@@ -73,6 +73,8 @@ class PromptService:
         elif mode == ModeTypes.ADVICE:
             result = await PromptService.prompt_to_advice_model(db, user_prompt, mode)
 
+        _ = await PromptService.create_prompt(db, user_prompt, mode, RoleTypes.USER)
+        _ = await PromptService.create_prompt(db, str(result), mode, RoleTypes.SYSTEM)
         return result
 
     @staticmethod
@@ -130,8 +132,7 @@ class PromptService:
             else:
                 pass
 
-        result = await PromptService.create_prompt(db, user_prompt, mode)
-        return result
+        return str(operators)
 
     @staticmethod
     async def prompt_to_advice_model(db, user_prompt: str, mode: str):
@@ -140,7 +141,6 @@ class PromptService:
         prompt = PROMPT_TEMPLATE.format(user_prompt, str(irs))
 
         answer = await PromptService.prompt(db, prompt, Advice)
-        result = await PromptService.create_prompt(db, user_prompt, mode)
         return answer
 
     @staticmethod

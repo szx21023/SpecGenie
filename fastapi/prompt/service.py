@@ -31,8 +31,8 @@ class PromptService:
             output_format
         )
 
-        r = output_format.model_validate_json(result)
-        return r.model_dump()
+        answer = output_format.model_validate_json(result)
+        return answer.model_dump()
 
     @staticmethod
     async def create_prompt(db, prompt: str, mode: str, role: str):
@@ -83,9 +83,9 @@ class PromptService:
         app.logger.info(f'irs: {irs}')
         prompt = PROMPT_TEMPLATE.format(user_prompt, str(irs))
 
-        operators = await PromptService.prompt(db, prompt, Plan)
-        app.logger.info(operators)
-        for operator in operators.get('operations'):
+        answer = await PromptService.prompt(db, prompt, Plan)
+        app.logger.info(answer)
+        for operator in answer.get('operations'):
             ops = operator.get('kind')
             by, value = operator.get('target', {}).get('by'), operator.get('target', {}).get('value')
             if ops == Ops.ADD_TABLE:
@@ -132,7 +132,7 @@ class PromptService:
             else:
                 pass
 
-        return str(operators)
+        return answer
 
     @staticmethod
     async def prompt_to_advice_model(db, user_prompt: str, mode: str):

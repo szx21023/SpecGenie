@@ -35,13 +35,13 @@ class PromptService:
         return r.model_dump()
 
     @staticmethod
-    async def create_prompt(db, prompt: str):
+    async def create_prompt(db, prompt: str, mode: str):
         """
         Test the prompt with the given ID.
         """
 
         schema = PromptSchema()
-        data = schema.load({"prompt": prompt})
+        data = schema.load({"prompt": prompt, "mode": mode})
 
         prompt = Prompts(**data)
         db.add(prompt)
@@ -68,15 +68,15 @@ class PromptService:
     @staticmethod
     async def prompt_to_model(db, user_prompt: str, mode: str):
         if mode == ModeTypes.SPEC:
-            result = await PromptService.prompt_to_spec_model(db, user_prompt)
+            result = await PromptService.prompt_to_spec_model(db, user_prompt, mode)
 
         elif mode == ModeTypes.ADVICE:
-            result = await PromptService.prompt_to_advice_model(db, user_prompt)
+            result = await PromptService.prompt_to_advice_model(db, user_prompt, mode)
 
         return result
 
     @staticmethod
-    async def prompt_to_spec_model(db, user_prompt: str):
+    async def prompt_to_spec_model(db, user_prompt: str, mode: str):
         irs = await IRService.get_ir(db)
         app.logger.info(f'irs: {irs}')
         prompt = PROMPT_TEMPLATE.format(user_prompt, str(irs))
@@ -130,17 +130,17 @@ class PromptService:
             else:
                 pass
 
-        result = await PromptService.create_prompt(db, user_prompt)
+        result = await PromptService.create_prompt(db, user_prompt, mode)
         return result
 
     @staticmethod
-    async def prompt_to_advice_model(db, user_prompt: str):
+    async def prompt_to_advice_model(db, user_prompt: str, mode: str):
         irs = await IRService.get_ir(db)
         app.logger.info(f'irs: {irs}')
         prompt = PROMPT_TEMPLATE.format(user_prompt, str(irs))
 
         answer = await PromptService.prompt(db, prompt, Advice)
-        result = await PromptService.create_prompt(db, user_prompt)
+        result = await PromptService.create_prompt(db, user_prompt, mode)
         return answer
 
     @staticmethod

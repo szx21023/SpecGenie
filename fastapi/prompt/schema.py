@@ -3,6 +3,7 @@ from marshmallow import fields, Schema
 class PromptSchema(Schema):
     id = fields.Int(dump_only=True)
     prompt = fields.Str(required=True)
+    mode = fields.Str(required=True)
 
 # fastapi/planner/schema.py
 from typing import List, Literal

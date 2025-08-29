@@ -9,3 +9,5 @@ class Ops:
 class IrTypes:
     ENTITY = "entity"
     API = "api"
+
+PROMPT_TEMPLATE = "{} + \n\n目前的規格如下:\n + {}"

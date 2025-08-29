@@ -9,7 +9,7 @@ from ir.service import IRService
 from apis.service import ApisService
 from tables.service import TablesService
 
-from .const import Ops, IrTypes
+from .const import Ops, IrTypes, PROMPT_TEMPLATE
 from .model import Prompts
 from .schema import PromptSchema, Plan
 
@@ -69,7 +69,7 @@ class PromptService:
     async def prompt_to_model(db, user_prompt: str):
         irs = await IRService.get_ir(db)
         app.logger.info(f'irs: {irs}')
-        prompt = user_prompt + "\n\n" + "目前的規格如下:\n" + str(irs)
+        prompt = PROMPT_TEMPLATE.format(user_prompt, str(irs))
 
         operators = await PromptService.prompt(db, prompt, Plan)
         app.logger.info(operators)

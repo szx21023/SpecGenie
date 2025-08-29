@@ -25,13 +25,13 @@ class PromptService:
             model_name
         )
 
-        ir_result = model(
+        result = model(
             prompt,
             output_format
         )
 
-        ir = output_format.model_validate_json(ir_result)
-        return ir.model_dump()
+        r = output_format.model_validate_json(result)
+        return r.model_dump()
 
     @staticmethod
     async def create_prompt(db, prompt: str):

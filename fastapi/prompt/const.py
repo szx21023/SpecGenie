@@ -10,4 +10,8 @@ class IrTypes:
     ENTITY = "entity"
     API = "api"
 
+class ModeTypes:
+    SPEC = "spec"
+    ADVICE = "advice"
+
 PROMPT_TEMPLATE = "{} + \n\n目前的規格如下:\n + {}"

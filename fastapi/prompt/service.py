@@ -9,7 +9,7 @@ from ir.service import IRService
 from apis.service import ApisService
 from tables.service import TablesService
 
-from .const import Ops, IrTypes, PROMPT_TEMPLATE
+from .const import Ops, IrTypes, PROMPT_TEMPLATE, ModeTypes
 from .model import Prompts
 from .schema import PromptSchema, Plan, Advice
 
@@ -67,10 +67,10 @@ class PromptService:
 
     @staticmethod
     async def prompt_to_model(db, user_prompt: str, mode: str):
-        if mode == 'spec':
+        if mode == ModeTypes.SPEC:
             result = await PromptService.prompt_to_spec_model(db, user_prompt)
 
-        elif mode == 'advice':
+        elif mode == ModeTypes.ADVICE:
             result = await PromptService.prompt_to_advice_model(db, user_prompt)
 
         return result

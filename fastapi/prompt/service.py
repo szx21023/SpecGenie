@@ -11,7 +11,7 @@ from tables.service import TablesService
 
 from .const import Ops, IrTypes, PROMPT_TEMPLATE
 from .model import Prompts
-from .schema import PromptSchema, Plan
+from .schema import PromptSchema, Plan, Advice
 
 class PromptService:
     @staticmethod
@@ -66,7 +66,17 @@ class PromptService:
         return prompts
 
     @staticmethod
-    async def prompt_to_model(db, user_prompt: str):
+    async def prompt_to_model(db, user_prompt: str, mode: str):
+        if mode == 'spec':
+            result = await PromptService.prompt_to_spec_model(db, user_prompt)
+
+        elif mode == 'advice':
+            result = await PromptService.prompt_to_advice_model(db, user_prompt)
+
+        return result
+
+    @staticmethod
+    async def prompt_to_spec_model(db, user_prompt: str):
         irs = await IRService.get_ir(db)
         app.logger.info(f'irs: {irs}')
         prompt = PROMPT_TEMPLATE.format(user_prompt, str(irs))
@@ -122,6 +132,16 @@ class PromptService:
 
         result = await PromptService.create_prompt(db, user_prompt)
         return result
+
+    @staticmethod
+    async def prompt_to_advice_model(db, user_prompt: str):
+        irs = await IRService.get_ir(db)
+        app.logger.info(f'irs: {irs}')
+        prompt = PROMPT_TEMPLATE.format(user_prompt, str(irs))
+
+        answer = await PromptService.prompt(db, prompt, Advice)
+        result = await PromptService.create_prompt(db, user_prompt)
+        return answer
 
     @staticmethod
     async def get_current_spec(irs, type, by, value):

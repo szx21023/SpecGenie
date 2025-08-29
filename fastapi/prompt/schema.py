@@ -56,3 +56,6 @@ class DropApi(BaseModel):
 
 class Plan(BaseModel):
     operations: List[UpdateTable | AddTable | DropTable | AddApi | UpdateApi | DropApi]
+
+class Advice(BaseModel):
+    advice: str

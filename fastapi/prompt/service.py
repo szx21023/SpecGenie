@@ -20,6 +20,7 @@ class PromptService:
         Create a new prompt with the given prompt.
         """
         # Create the model
+        app.logger.info(f'Using model: {model_name}, prompt: {prompt}')
         model = from_openai(
             app.state.openai_client,
             model_name

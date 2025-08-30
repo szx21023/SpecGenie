@@ -9,9 +9,9 @@ from ir.service import IRService
 from apis.service import ApisService
 from tables.service import TablesService
 
-from .const import Ops, IrTypes, PROMPT_TEMPLATE
+from .const import Ops, IrTypes, PROMPT_TEMPLATE, ModeTypes, RoleTypes
 from .model import Prompts
-from .schema import PromptSchema, Plan
+from .schema import PromptSchema, Plan, Advice
 
 class PromptService:
     @staticmethod
@@ -31,17 +31,17 @@ class PromptService:
             output_format
         )
 
-        r = output_format.model_validate_json(result)
-        return r.model_dump()
+        answer = output_format.model_validate_json(result)
+        return answer.model_dump()
 
     @staticmethod
-    async def create_prompt(db, prompt: str):
+    async def create_prompt(db, prompt: str, mode: str, role: str):
         """
         Test the prompt with the given ID.
         """
 
         schema = PromptSchema()
-        data = schema.load({"prompt": prompt})
+        data = schema.load({"prompt": prompt, "mode": mode, "role": role})
 
         prompt = Prompts(**data)
         db.add(prompt)
@@ -66,14 +66,26 @@ class PromptService:
         return prompts
 
     @staticmethod
-    async def prompt_to_model(db, user_prompt: str):
+    async def prompt_to_model(db, user_prompt: str, mode: str):
+        if mode == ModeTypes.SPEC:
+            result = await PromptService.prompt_to_spec_model(db, user_prompt, mode)
+
+        elif mode == ModeTypes.ADVICE:
+            result = await PromptService.prompt_to_advice_model(db, user_prompt, mode)
+
+        _ = await PromptService.create_prompt(db, user_prompt, mode, RoleTypes.USER)
+        _ = await PromptService.create_prompt(db, str(result), mode, RoleTypes.SYSTEM)
+        return result
+
+    @staticmethod
+    async def prompt_to_spec_model(db, user_prompt: str, mode: str):
         irs = await IRService.get_ir(db)
         app.logger.info(f'irs: {irs}')
         prompt = PROMPT_TEMPLATE.format(user_prompt, str(irs))
 
-        operators = await PromptService.prompt(db, prompt, Plan)
-        app.logger.info(operators)
-        for operator in operators.get('operations'):
+        answer = await PromptService.prompt(db, prompt, Plan)
+        app.logger.info(answer)
+        for operator in answer.get('operations'):
             ops = operator.get('kind')
             by, value = operator.get('target', {}).get('by'), operator.get('target', {}).get('value')
             if ops == Ops.ADD_TABLE:
@@ -120,8 +132,16 @@ class PromptService:
             else:
                 pass
 
-        result = await PromptService.create_prompt(db, user_prompt)
-        return result
+        return answer
+
+    @staticmethod
+    async def prompt_to_advice_model(db, user_prompt: str, mode: str):
+        irs = await IRService.get_ir(db)
+        app.logger.info(f'irs: {irs}')
+        prompt = PROMPT_TEMPLATE.format(user_prompt, str(irs))
+
+        answer = await PromptService.prompt(db, prompt, Advice)
+        return answer
 
     @staticmethod
     async def get_current_spec(irs, type, by, value):

@@ -22,6 +22,7 @@ async def get_prompts(
 async def create_prompt( 
         schema = Body(example={
             'prompt': 'Sample Prompt',
+            'mode': 'spec'
         }),
         db: AsyncSession = Depends(get_db)
     ):
@@ -30,5 +31,6 @@ async def create_prompt(
     """
 
     prompt = schema.get('prompt')
-    result = await PromptService.prompt_to_model(db, user_prompt=prompt)
+    mode = schema.get('mode')
+    result = await PromptService.prompt_to_model(db, user_prompt=prompt, mode=mode)
     return result

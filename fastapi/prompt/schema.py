@@ -3,6 +3,8 @@ from marshmallow import fields, Schema
 class PromptSchema(Schema):
     id = fields.Int(dump_only=True)
     prompt = fields.Str(required=True)
+    mode = fields.Str(required=True)
+    role = fields.Str(required=True)
 
 # fastapi/planner/schema.py
 from typing import List, Literal
@@ -56,3 +58,6 @@ class DropApi(BaseModel):
 
 class Plan(BaseModel):
     operations: List[UpdateTable | AddTable | DropTable | AddApi | UpdateApi | DropApi]
+
+class Advice(BaseModel):
+    advice: str

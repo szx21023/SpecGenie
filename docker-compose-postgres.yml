@@ -1,0 +1,17 @@
+version: '3.1'
+services:
+  postgres:
+    image: pgvector/pgvector:pg16  # ✅ 內建 pgvector 的官方映像
+    container_name: pgvector-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pgvector_demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

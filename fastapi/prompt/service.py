@@ -68,17 +68,17 @@ class PromptService:
     @staticmethod
     async def prompt_to_model(db, user_prompt: str, mode: str):
         if mode == ModeTypes.SPEC:
-            result = await PromptService.prompt_to_spec_model(db, user_prompt, mode)
+            result = await PromptService.prompt_to_spec_model(db, user_prompt)
 
         elif mode == ModeTypes.ADVICE:
-            result = await PromptService.prompt_to_advice_model(db, user_prompt, mode)
+            result = await PromptService.prompt_to_advice_model(db, user_prompt)
 
         _ = await PromptService.create_prompt(db, user_prompt, mode, RoleTypes.USER)
         _ = await PromptService.create_prompt(db, str(result), mode, RoleTypes.SYSTEM)
         return result
 
     @staticmethod
-    async def prompt_to_spec_model(db, user_prompt: str, mode: str):
+    async def prompt_to_spec_model(db, user_prompt: str):
         irs = await IRService.get_ir(db)
         app.logger.info(f'irs: {irs}')
         prompt = PROMPT_TEMPLATE.format(user_prompt, str(irs))
@@ -135,12 +135,12 @@ class PromptService:
         return answer
 
     @staticmethod
-    async def prompt_to_advice_model(db, user_prompt: str, mode: str):
+    async def prompt_to_advice_model(db, user_prompt: str):
         irs = await IRService.get_ir(db)
         app.logger.info(f'irs: {irs}')
         prompt = PROMPT_TEMPLATE.format(user_prompt, str(irs))
-
         answer = await PromptService.prompt(db, prompt, Advice)
+
         return answer
 
     @staticmethod

@@ -1,0 +1,2 @@
+class VectorSourceType:
+    PROMPT = "prompt"

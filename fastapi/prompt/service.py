@@ -7,6 +7,8 @@ from pydantic import BaseModel
 from ir.schema import IR
 from ir.service import IRService
 from apis.service import ApisService
+from rag_vectors.const import VectorSourceType
+from rag_vectors.service import RagVectorService
 from tables.service import TablesService
 
 from .const import Ops, IrTypes, PROMPT_TEMPLATE, ModeTypes, RoleTypes
@@ -73,8 +75,16 @@ class PromptService:
         elif mode == ModeTypes.ADVICE:
             result = await PromptService.prompt_to_advice_model(db, user_prompt)
 
-        _ = await PromptService.create_prompt(db, user_prompt, mode, RoleTypes.USER)
-        _ = await PromptService.create_prompt(db, str(result), mode, RoleTypes.SYSTEM)
+        prompt = await PromptService.create_prompt(db, user_prompt, mode, RoleTypes.USER)
+        prompt = await PromptService.create_prompt(db, str(result), mode, RoleTypes.SYSTEM)
+        data = {
+            'source_type': VectorSourceType.PROMPT,
+            'source_id': str(prompt.id),
+            'mode': mode,
+            'role': RoleTypes.USER,
+            'text': user_prompt
+        }
+        _ = await RagVectorService.create_rag_vector(db, data)
         return result
 
     @staticmethod

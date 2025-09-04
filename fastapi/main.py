@@ -1,3 +1,4 @@
+from typing import List
 from fastapi_basic.base_factory import BaseFactory
 
 from version import version
@@ -14,6 +15,32 @@ class AppFactory(BaseFactory):
         config = Config()
         return config.dict()
 
+    async def __setup_llm_client(self, app):
+        class EmbeddingClient:
+            """
+            傳入你現有的 openai client（如 app.state.openai_client）
+            """
+            def __init__(self, client, model: str = "text-embedding-3-small"):
+                self.client = client
+                self.model = model
+
+            def embed_one(self, text: str) -> List[float]:
+                resp = self.client.embeddings.create(
+                    model=self.model,
+                    input=[text]
+                )
+                return resp.data[0].embedding
+
+            def embed_batch(self, texts: List[str]) -> List[List[float]]:
+                resp = self.client.embeddings.create(
+                    model=self.model,
+                    input=texts
+                )
+                return [d.embedding for d in resp.data]
+
+        app.state.openai_client = await init_openai_app(app)
+        app.state.embedding_client = EmbeddingClient(app.state.openai_client)
+
     def create_app(self):
         app = super().create_app()
 
@@ -24,8 +51,7 @@ class AppFactory(BaseFactory):
             await init_prompt_app(app)
             await init_tables_app(app)
 
-            app.state.openai_client = await init_openai_app(app)
-            await init_rag_vectors_app(app)
+            await self.__setup_llm_client(app)
 
             # ✅ 先建立 pgvector extension，再 create_all
             from sqlalchemy import text

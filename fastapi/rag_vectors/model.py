@@ -4,6 +4,8 @@ from pgvector.sqlalchemy import Vector  # ← 重點
 
 from database import Base
 
+from .const import VECTOR_DIMENSION
+
 class Vector(UserDefinedType):
     def __init__(self, dimensions: int):
         self.dimensions = dimensions
@@ -23,4 +25,4 @@ class RagVectors(Base):
     # 內文
     text: Mapped[str] = mapped_column(nullable=True)
     # Example for PostgreSQL with pgvector extension
-    embedding: Mapped[list[float]] = mapped_column(Vector(1536), nullable=True)
+    embedding: Mapped[list[float]] = mapped_column(Vector(VECTOR_DIMENSION), nullable=True)

@@ -1,14 +1,12 @@
 from select import select
 from main import app
-from .model import RagVectors
-from .schema import RagVectorSchema
 
-from typing import Any, Dict, List, Optional, Literal
+from typing import List, Optional
 from sqlalchemy import select, literal
 from sqlalchemy.ext.asyncio import AsyncSession
-
-# 假設你的 ORM
-from .model import RagVectors, Vector  # Vector 就是上面那個自訂型別
+from .const import VECTOR_DIMENSION
+from .model import RagVectors, Vector
+from .schema import RagVectorSchema
 
 class RagVectorService:
     @staticmethod
@@ -51,8 +49,8 @@ class RagVectorService:
         role: Optional[str] = None,
         source_type: Optional[str] = None,
     ) -> List[dict]:
-        # 把 qvec 綁成 ORM 可以理解的「public.vector(1536)」常值
-        qlit = literal(qvec, type_=Vector(1536))
+        # 把 qvec 綁成 ORM 可以理解的「public.vector(維度)」常值
+        qlit = literal(qvec, type_=Vector(VECTOR_DIMENSION))
 
         # 定義「距離」與「相似度」表達式
         dist_expr = RagVectors.embedding.op('<=>')(qlit)             # cosine 距離（越小越近）

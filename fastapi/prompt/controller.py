@@ -45,5 +45,4 @@ async def post_pomption(
         from rag_vectors.service import RagVectorService
         prompt = schema.get('prompt')
         result = await RagVectorService.get_rag_vector_by_prompt(db, prompt)
-        print(result)
-        return {"data": "This is a test for getting pomption!"}
+        return result

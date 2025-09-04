@@ -29,13 +29,13 @@ class RagVectorService:
             raise e
 
         return rag_vector
-    
+
     @staticmethod
     async def get_rag_vector_by_prompt(db, prompt):
         vector_query = await RagVectorService.convert_data_to_vector(db, prompt)
         result = await RagVectorService.search_vectors_orm(db, qvec=vector_query, k=12)
         return result
-    
+
     @staticmethod
     async def convert_data_to_vector(db, data):
         result = app.state.embedding_client.embed_one(str(data))

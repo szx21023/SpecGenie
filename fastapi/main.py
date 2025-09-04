@@ -49,6 +49,7 @@ class AppFactory(BaseFactory):
             await init_apis_app(app)
             await init_ir_app(app)
             await init_prompt_app(app)
+            await init_rag_vectors_app(app)
             await init_tables_app(app)
 
             await self.__setup_llm_client(app)

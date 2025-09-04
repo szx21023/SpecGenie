@@ -50,7 +50,6 @@ class RagVectorService:
         mode: Optional[str] = None,
         role: Optional[str] = None,
         source_type: Optional[str] = None,
-        metadata_filter: Optional[Dict[str, Any]] = None,   # 如果有 JSONB 欄位
     ) -> List[dict]:
         # 把 qvec 綁成 ORM 可以理解的「public.vector(1536)」常值
         qlit = literal(qvec, type_=Vector(1536))
@@ -61,14 +60,7 @@ class RagVectorService:
 
         stmt = (
             select(
-                RagVectors.id,
-                RagVectors.source_type,
-                RagVectors.source_id,
-                RagVectors.mode,
-                RagVectors.role,
-                RagVectors.text,
-                # 如果你表裡有 JSONB metadata 欄位，取消註解：
-                # RagVectors.metadata,
+                *[col for col in RagVectors.__table__.columns if col.name != 'embedding'],  # 不選 embedding 欄位
                 sim_expr,
             )
             # 過濾條件（依需要加）
@@ -76,8 +68,6 @@ class RagVectorService:
                 (RagVectors.mode == mode) if mode else None,
                 (RagVectors.role == role) if role else None,
                 (RagVectors.source_type == source_type) if source_type else None,
-                # 如果有 JSONB metadata 欄位（contains）
-                # (RagVectors.metadata.contains(metadata_filter) if metadata_filter else None),
             ] if cond is not None))
             # 依距離排序（最相近在前）
             .order_by(dist_expr)

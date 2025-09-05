@@ -1,5 +1,5 @@
 from main import app
-from sqlalchemy import select
+from sqlalchemy import desc, select
 
 from outlines import from_openai
 from pydantic import BaseModel
@@ -16,6 +16,12 @@ from .model import Prompts
 from .schema import PromptSchema, Plan, Advice
 
 class PromptService:
+    @staticmethod
+    async def set_q_order():
+        orders = [desc(Prompts.id)]
+
+        return orders
+
     @staticmethod
     async def prompt(db, prompt: str, output_format: BaseModel, model_name: str = "gpt-4o"):
         """
@@ -59,7 +65,9 @@ class PromptService:
 
     @staticmethod
     async def get_prompts(db):
-        sql = select(Prompts)
+        q_order = await PromptService.set_q_order()
+
+        sql = select(Prompts).order_by(*q_order)
         result = await db.execute(sql)
         prompts = result.scalars().all()
 

@@ -11,4 +11,4 @@ main:app：代表在 main.py 檔案中有一個名為 app 的 FastAPI 應用程�
 
 --port 8000：指定使用的埠號為 8000（預設是 8000）。
 
-![GitHub Logo](https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png)
+![SpecGenie demo](https://drive.google.com/file/d/1o4gxon0T8RzrbK9kRB2DnwEpVMxLwFuw/view)

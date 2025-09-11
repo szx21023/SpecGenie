@@ -1,9 +1,9 @@
 from sqlalchemy import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
-from database import Base
+from database import BaseModel
 
-class Apis(Base):
+class Apis(BaseModel):
     __tablename__ = "apis"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)

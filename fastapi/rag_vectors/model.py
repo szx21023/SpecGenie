@@ -2,7 +2,7 @@ from sqlalchemy.types import UserDefinedType
 from sqlalchemy.orm import Mapped, mapped_column
 from pgvector.sqlalchemy import Vector  # ← 重點
 
-from database import Base
+from database import BaseModel
 
 from .const import VECTOR_DIMENSION
 
@@ -13,7 +13,7 @@ class Vector(UserDefinedType):
     def get_col_spec(self, **kw):
         return f"vector({self.dimensions})"
 
-class RagVectors(Base):
+class RagVectors(BaseModel):
     __tablename__ = "rag_vectors"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)

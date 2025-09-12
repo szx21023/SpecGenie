@@ -84,7 +84,6 @@ class PromptService:
             result = await PromptService.prompt_to_advice_model(db, user_prompt)
 
         prompt = await PromptService.create_prompt(db, user_prompt, mode, RoleTypes.USER)
-        prompt = await PromptService.create_prompt(db, str(result), mode, RoleTypes.SYSTEM)
         data = {
             'source_type': VectorSourceType.PROMPT,
             'source_id': str(prompt.id),
@@ -93,6 +92,7 @@ class PromptService:
             'text': user_prompt
         }
         _ = await RagVectorService.create_rag_vector(db, data)
+        prompt = await PromptService.create_prompt(db, str(result), mode, RoleTypes.SYSTEM)
         data = {
             'source_type': VectorSourceType.PROMPT,
             'source_id': str(prompt.id),

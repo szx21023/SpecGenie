@@ -93,6 +93,14 @@ class PromptService:
             'text': user_prompt
         }
         _ = await RagVectorService.create_rag_vector(db, data)
+        data = {
+            'source_type': VectorSourceType.PROMPT,
+            'source_id': str(prompt.id),
+            'mode': mode,
+            'role': RoleTypes.SYSTEM,
+            'text': str(result)
+        }
+        _ = await RagVectorService.create_rag_vector(db, data)
         return result
 
     @staticmethod

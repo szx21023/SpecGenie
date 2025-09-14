@@ -73,6 +73,8 @@ class AppFactory(BaseFactory):
 
         @app.get("/hello")
         async def hello():
+            from prompt.service import PromptService
+            _ = await PromptService.langchain_test()
             return {"data": {"version": version}}
 
         return app

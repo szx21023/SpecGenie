@@ -14,7 +14,7 @@ class RagVectorService:
         schema = RagVectorSchema()
         data = schema.load(data)
         result = app.state.embedding_client.embed_one(str(data))
-        data['embedding'] = f"[{', '.join(str(x) for x in result)}]" if isinstance(result, list) else result
+        data['embedding'] = result # f"[{', '.join(str(x) for x in result)}]" if isinstance(result, list) else result
 
         rag_vector = RagVectors(**data)
         db.add(rag_vector)

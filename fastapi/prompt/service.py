@@ -186,3 +186,70 @@ class PromptService:
                     continue
 
                 return api
+
+   # fastapi/prompt/service.py
+    @staticmethod
+    async def langchain_test():
+        from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+        from langchain_openai import OpenAIEmbeddings
+        from rag_vectors.retriever import PgRagRetriever
+
+        engine_async = create_async_engine("postgresql+asyncpg://postgres:postgres@localhost:5432/pgvector_demo")
+        SessionAsync = async_sessionmaker(engine_async, expire_on_commit=False)
+
+        emb = OpenAIEmbeddings(model="text-embedding-3-small")
+        retr = PgRagRetriever(
+            embed_query=emb.embed_query,
+            async_session_factory=SessionAsync,
+            k=20,
+            distance="cosine",
+        )
+
+        docs = await retr.ainvoke("tell me about dogs")
+        print(docs)
+        for d in docs:
+            print(d.page_content, d.metadata)
+            print('-------')
+
+
+        # from sqlalchemy import create_engine
+        # from sqlalchemy.orm import sessionmaker
+        # from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+        # from langchain_openai import OpenAIEmbeddings
+        from langchain.retrievers import MultiQueryRetriever
+        from langchain_openai import ChatOpenAI
+        # from rag_vectors.retriever import PgRagRetriever
+
+        # # 建議：app 用 async engine；sync 用於某些同步鏈條相容
+        # async_engine = create_async_engine("postgresql+asyncpg://postgres:postgres@localhost:5432/pgvector_demo")
+        # SessionAsync = async_sessionmaker(async_engine, expire_on_commit=False)
+
+        # sync_engine = create_engine("postgresql+psycopg2://postgres:postgres@localhost:5432/pgvector_demo")
+        # SessionSync = sessionmaker(sync_engine)
+
+        # emb = OpenAIEmbeddings(model="text-embedding-3-small")
+
+        # retr = PgRagRetriever(
+        #     embed_query=emb.embed_query,
+        #     async_session_factory=SessionAsync,
+        #     sync_session_factory=SessionSync,
+        #     k=5,
+        #     distance="cosine",
+        # )
+
+        # # 直接用（同步）
+        # docs = retr.invoke("dogs")  # 會走 sync session
+        # # 或在 FastAPI 協程裡（非阻塞）
+        # docs = await retr.ainvoke("dogs")
+
+        # # 接 MultiQuery（若你用 async 環境，建議也用 ainvoke）
+        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+        mqr = MultiQueryRetriever.from_llm(retriever=retr, llm=llm)
+        # docs = mqr.invoke("best loyal pets")        # 同步
+        # # 或：
+        docs = await mqr.ainvoke("best loyal pets") # 非同步
+        print('aaaaaaaaaaaaaaaaaaa')
+        print(docs)
+        for d in docs:
+            print(d.page_content, d.metadata)
+            print('-------')

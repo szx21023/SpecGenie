@@ -6,12 +6,12 @@ from database import BaseModel
 
 from .const import VECTOR_DIMENSION
 
-class Vector(UserDefinedType):
-    def __init__(self, dimensions: int):
-        self.dimensions = dimensions
+# class Vector(UserDefinedType):
+#     def __init__(self, dimensions: int):
+#         self.dimensions = dimensions
 
-    def get_col_spec(self, **kw):
-        return f"vector({self.dimensions})"
+#     def get_col_spec(self, **kw):
+#         return f"vector({self.dimensions})"
 
 class RagVectors(BaseModel):
     __tablename__ = "rag_vectors"

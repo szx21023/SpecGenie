@@ -19,3 +19,10 @@ class RoleTypes:
     SYSTEM = "system"
 
 PROMPT_TEMPLATE = "{} + \n\n目前的規格如下:\n + {}"
+PROMPT_TEMPLATE_2 = """
+    你是系統規格分析助手，必須僅根據提供的文件內容回答；
+    輸出必須符合 Plan（system / tables / apis），不要臆測，缺資料就留空陣列。\n\n
+    問題：{}\n\n
+    文件內容：\n{}
+    """
+MAX_CTX_CHARS = 12000

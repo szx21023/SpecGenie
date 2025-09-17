@@ -1,6 +1,9 @@
 from main import app
 from sqlalchemy import desc, select
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
+from langchain.retrievers import MultiQueryRetriever
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from outlines import from_openai
 from pydantic import BaseModel
 
@@ -8,10 +11,11 @@ from ir.schema import IR
 from ir.service import IRService
 from apis.service import ApisService
 from rag_vectors.const import VectorSourceType
+from rag_vectors.retriever import PgRagRetriever
 from rag_vectors.service import RagVectorService
 from tables.service import TablesService
 
-from .const import Ops, IrTypes, PROMPT_TEMPLATE, ModeTypes, RoleTypes
+from .const import Ops, IrTypes, PROMPT_TEMPLATE, PROMPT_TEMPLATE_2, ModeTypes, RoleTypes, MAX_CTX_CHARS
 from .model import Prompts
 from .schema import PromptSchema, Plan, Advice
 
@@ -190,34 +194,27 @@ class PromptService:
    # fastapi/prompt/service.py
     @staticmethod
     async def langchain_test():
-        from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-        from langchain.retrievers import MultiQueryRetriever
-        from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        from rag_vectors.retriever import PgRagRetriever
+        async def answer_with_spec_async(question: str) -> Plan:
+            docs = await m_retriever.ainvoke(question)
+            context = "\n\n".join((d.page_content or "").strip() for d in docs if d.page_content)[:MAX_CTX_CHARS]
+            prompt = PROMPT_TEMPLATE_2.format(question, context)
+            return await llm_struct.ainvoke(prompt)
 
         engine_async = create_async_engine("postgresql+asyncpg://postgres:postgres@localhost:5432/pgvector_demo")
         SessionAsync = async_sessionmaker(engine_async, expire_on_commit=False)
 
-        emb = OpenAIEmbeddings(model="text-embedding-3-small")
-        retr = PgRagRetriever(
-            embed_query=emb.embed_query,
+        embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+        cus_retriever = PgRagRetriever(
+            embed_query=embeddings.embed_query,
             async_session_factory=SessionAsync,
             k=20,
             distance="cosine",
         )
 
-        docs = await retr.ainvoke("tell me about dogs")
-        print(docs)
-        for d in docs:
-            print(d.page_content, d.metadata)
-            print('-------')
-
-        # # 接 MultiQuery（若你用 async 環境，建議也用 ainvoke）
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-        mqr = MultiQueryRetriever.from_llm(retriever=retr, llm=llm)
+        m_retriever = MultiQueryRetriever.from_llm(retriever=cus_retriever, llm=llm)
+        # 結構化輸出用的 LLM
+        llm_struct = ChatOpenAI(model="gpt-4o", temperature=0).with_structured_output(Plan)
 
-        docs = await mqr.ainvoke("best loyal pets") # 非同步
-        print(docs)
-        for d in docs:
-            print(d.page_content, d.metadata)
-            print('-------')
+        spec: Plan = await answer_with_spec_async("設計一個電商系統")
+        print(spec.model_dump_json(indent=2))

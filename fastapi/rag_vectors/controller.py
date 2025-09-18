@@ -10,11 +10,13 @@ router = APIRouter(prefix=f"/rag_vectors", tags=["rag_vectors"])
 @router.post("")
 async def post_rag_vectors(
         schema = Body(example={
-            'prompt': 'Sample Prompt'
+            'prompt': 'Sample Prompt',
+            'k': 12
         }),
         db: AsyncSession = Depends(get_db)
     ):
 
     prompt = schema.get('prompt')
-    result = await RagVectorService.get_rag_vector_by_prompt(db, prompt)
+    k = schema.get('k')
+    result = await RagVectorService.get_rag_vector_by_prompt(db, prompt, k)
     return result

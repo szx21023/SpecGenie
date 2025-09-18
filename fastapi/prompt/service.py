@@ -28,18 +28,6 @@ class PromptService:
         """
         # Create the model
         app.logger.info(f'Using model: {model_name}, prompt: {prompt}')
-        # model = from_openai(
-        #     app.state.openai_client,
-        #     model_name
-        # )
-
-        # result = model(
-        #     prompt,
-        #     output_format
-        # )
-
-        # answer = output_format.model_validate_json(result)
-        # return answer.model_dump()
         answer: BaseModel = await app.state.spec_answer_engine.answer_with_spec(prompt, output_format)
         return answer.model_dump()
 

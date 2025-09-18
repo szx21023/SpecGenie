@@ -1,4 +1,54 @@
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+
+from langchain.retrievers import MultiQueryRetriever
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
 async def init_app(app):
+    from prompt.const import PROMPT_TEMPLATE_2
+    from prompt.schema import Plan
     from .controller import router
+    from .retriever import PgRagRetriever
 
     app.include_router(router)
+
+    class SpecAnswerEngine:
+        def __init__(
+            self,
+            db_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/pgvector_demo",
+            embed_model: str = "text-embedding-3-small",
+            llm_model: str = "gpt-4o-mini",
+            llm_struct_model: str = "gpt-4o",
+            k: int = 20,
+            distance: str = "cosine",
+        ):
+            # DB session
+            self.engine_async = create_async_engine(db_url)
+            self.SessionAsync = async_sessionmaker(self.engine_async, expire_on_commit=False)
+
+            # Embeddings
+            self.embeddings = OpenAIEmbeddings(model=embed_model)
+
+            # Retriever
+            self.cus_retriever = PgRagRetriever(
+                embed_query=self.embeddings.embed_query,
+                async_session_factory=self.SessionAsync,
+                k=k,
+                distance=distance,
+            )
+
+            # LLM
+            self.llm = ChatOpenAI(model=llm_model, temperature=0)
+            self.m_retriever = MultiQueryRetriever.from_llm(
+                retriever=self.cus_retriever, llm=self.llm
+            )
+
+            # 結構化輸出的 LLM
+            self.llm_struct = ChatOpenAI(model=llm_struct_model, temperature=0).with_structured_output(Plan)
+
+        async def answer_with_spec(self, question: str, max_ctx_chars: int = 3000) -> Plan:
+            docs = await self.m_retriever.ainvoke(question)
+            context = "\n\n".join((d.page_content or "").strip() for d in docs if d.page_content)[:max_ctx_chars]
+            prompt = PROMPT_TEMPLATE_2.format(question, context)
+            return await self.llm_struct.ainvoke(prompt)
+
+    app.state.spec_answer_engine = SpecAnswerEngine()

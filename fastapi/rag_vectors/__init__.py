@@ -6,6 +6,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 async def init_app(app):
     from prompt.const import PROMPT_TEMPLATE_2
     from prompt.schema import Plan
+    from .const import EMBED_MODEL, LLM_MODEL, LLM_STRUCT_MODEL
     from .controller import router
     from .retriever import PgRagRetriever
 
@@ -13,13 +14,8 @@ async def init_app(app):
 
     class SpecAnswerEngine:
         def __init__(
-            self,
-            db_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/pgvector_demo",
-            embed_model: str = "text-embedding-3-small",
-            llm_model: str = "gpt-4o-mini",
-            llm_struct_model: str = "gpt-4o",
-            k: int = 20,
-            distance: str = "cosine",
+            self, db_url: str, embed_model: str, llm_model: str, llm_struct_model: str,
+            k: int = 20, distance: str = "cosine",
         ):
             # DB session
             self.engine_async = create_async_engine(db_url)
@@ -51,4 +47,9 @@ async def init_app(app):
             prompt = PROMPT_TEMPLATE_2.format(question, context)
             return await self.llm_struct.ainvoke(prompt)
 
-    app.state.spec_answer_engine = SpecAnswerEngine()
+    app.state.spec_answer_engine = SpecAnswerEngine(
+        app.state.config['DATABASE_URL'],
+        embed_model=EMBED_MODEL,
+        llm_model=LLM_MODEL,
+        llm_struct_model=LLM_STRUCT_MODEL,
+    )

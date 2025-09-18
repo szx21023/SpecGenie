@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from langchain.retrievers import MultiQueryRetriever
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from pydantic import BaseModel
 
 async def init_app(app):
     from prompt.const import PROMPT_TEMPLATE_2
@@ -39,13 +40,15 @@ async def init_app(app):
             )
 
             # 結構化輸出的 LLM
-            self.llm_struct = ChatOpenAI(model=llm_struct_model, temperature=0).with_structured_output(Plan)
+            self.llm_struct_model = llm_struct_model
 
-        async def answer_with_spec(self, question: str, max_ctx_chars: int = 3000) -> Plan:
+        async def answer_with_spec(self, question: str, output_format: BaseModel, max_ctx_chars: int = 3000) -> BaseModel:
+            llm_struct = ChatOpenAI(model=self.llm_struct_model, temperature=0).with_structured_output(output_format)
+
             docs = await self.m_retriever.ainvoke(question)
             context = "\n\n".join((d.page_content or "").strip() for d in docs if d.page_content)[:max_ctx_chars]
             prompt = PROMPT_TEMPLATE_2.format(question, context)
-            return await self.llm_struct.ainvoke(prompt)
+            return await llm_struct.ainvoke(prompt)
 
     app.state.spec_answer_engine = SpecAnswerEngine(
         app.state.config['DATABASE_URL'],

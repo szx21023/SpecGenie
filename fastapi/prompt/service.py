@@ -4,14 +4,13 @@ from sqlalchemy import desc, select
 from outlines import from_openai
 from pydantic import BaseModel
 
-from ir.schema import IR
 from ir.service import IRService
 from apis.service import ApisService
 from rag_vectors.const import VectorSourceType
 from rag_vectors.service import RagVectorService
 from tables.service import TablesService
 
-from .const import Ops, IrTypes, PROMPT_TEMPLATE, ModeTypes, RoleTypes
+from .const import Ops, IrTypes, PROMPT_TEMPLATE, PROMPT_TEMPLATE_2, ModeTypes, RoleTypes, MAX_CTX_CHARS
 from .model import Prompts
 from .schema import PromptSchema, Plan, Advice
 
@@ -29,17 +28,7 @@ class PromptService:
         """
         # Create the model
         app.logger.info(f'Using model: {model_name}, prompt: {prompt}')
-        model = from_openai(
-            app.state.openai_client,
-            model_name
-        )
-
-        result = model(
-            prompt,
-            output_format
-        )
-
-        answer = output_format.model_validate_json(result)
+        answer: BaseModel = await app.state.spec_answer_engine.answer_with_spec(prompt, output_format)
         return answer.model_dump()
 
     @staticmethod

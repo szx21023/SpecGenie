@@ -62,7 +62,6 @@ class PgRagRetriever(BaseRetriever):
     # ---- async 路徑（FastAPI 推薦用這個）----
     async def _aget_relevant_documents(self, query: str) -> List[Document]:
         if self.async_session_factory is None:
-            # 沒 async session，就把 sync 路徑丟到 thread
             import asyncio
             return await asyncio.to_thread(self._get_relevant_documents, query)
 
@@ -70,7 +69,19 @@ class PgRagRetriever(BaseRetriever):
         qvec = await _asyncio.to_thread(self.embed_query, query)
 
         async with self.async_session_factory() as session:
-            stmt = select(RagVectors).where(RagVectors.embedding.is_not(None))
+            # 1) 先組距離表達式
+            if self.distance == "cosine":
+                dist_col = RagVectors.embedding.cosine_distance(qvec)
+            else:
+                dist_col = RagVectors.embedding.l2_distance(qvec)
+
+            # 2) 在 SELECT 中同時選 RagVectors + 距離欄位
+            stmt = (
+                select(RagVectors, dist_col.label("distance"))
+                .where(RagVectors.embedding.is_not(None))
+            )
+
+            # 可選的 filters
             if self.filters:
                 st = self.filters.get("source_type")
                 if st is not None:
@@ -79,12 +90,11 @@ class PgRagRetriever(BaseRetriever):
                 if sid is not None:
                     stmt = stmt.where(RagVectors.source_id == sid)
 
-            if self.distance == "cosine":
-                stmt = stmt.order_by(RagVectors.embedding.cosine_distance(qvec))
-            else:
-                stmt = stmt.order_by(RagVectors.embedding.l2_distance(qvec))
+            # 3) 依距離排序 + 限制數量
+            stmt = stmt.order_by(dist_col).limit(self.k)
 
-            rows = (await session.execute(stmt.limit(self.k))).scalars().all()
+            # 4) 不能用 .scalars()，要拿 (RagVectors, distance) tuples
+            rows = (await session.execute(stmt)).all()
 
         return [
             Document(
@@ -95,7 +105,9 @@ class PgRagRetriever(BaseRetriever):
                     "source_id": r.source_id,
                     "mode": r.mode,
                     "role": r.role,
+                    "distance": float(distance),
+                    "similarity": 1.0 - float(distance) if self.distance == "cosine" else 1.0 / (1.0 + float(distance)),
                 },
             )
-            for r in rows
+            for r, distance in rows
         ]

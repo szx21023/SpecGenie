@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 async def init_app(app):
     from prompt.const import PROMPT_TEMPLATE_2
-    from prompt.schema import Plan
     from .const import EMBED_MODEL, LLM_MODEL, LLM_STRUCT_MODEL
     from .controller import router
     from .retriever import PgRagRetriever
@@ -15,8 +14,7 @@ async def init_app(app):
 
     class SpecAnswerEngine:
         def __init__(
-            self, db_url: str, embed_model: str, llm_model: str, llm_struct_model: str,
-            k: int = 20, distance: str = "cosine",
+            self, db_url: str, embed_model: str, llm_model: str, llm_struct_model: str, k: int = 20, distance: str = "cosine",
         ):
             # DB session
             self.engine_async = create_async_engine(db_url)
@@ -27,10 +25,7 @@ async def init_app(app):
 
             # Retriever
             self.cus_retriever = PgRagRetriever(
-                embed_query=self.embeddings.embed_query,
-                async_session_factory=self.SessionAsync,
-                k=k,
-                distance=distance,
+                embed_query=self.embeddings.embed_query, async_session_factory=self.SessionAsync, k=k, distance=distance,
             )
 
             # LLM

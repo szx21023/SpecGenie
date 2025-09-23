@@ -25,5 +25,5 @@ class RagVectorService:
 
     @staticmethod
     async def get_rag_vector_by_prompt(db, prompt, k):
-        result = await app.state.spec_answer_engine.m_retriever.ainvoke(prompt, k=k)
+        result = await app.state.spec_answer_engine.cus_retriever.ainvoke(prompt, k=k)
         return result

@@ -1,6 +1,22 @@
 version: '3.1'
 
 services:
+  postgres:
+    image: pgvector/pgvector:pg16  # ✅ 內建 pgvector 的官方映像
+    container_name: pgvector-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    # volumes:
+    #   - pgdata:/var/lib/postgresql/data
+    networks:
+      - mynet
+    restart: always
+
   fastapi:
     container_name: ${DOCKER_SERVER_NAME}
     build:
@@ -8,8 +24,12 @@ services:
       dockerfile: dockerfile
     ports:
       - ${DOCKER_SERVER_PORT}:8000
+    depends_on:
+      - postgres
     networks:
       - mynet
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     restart: always
 
   nginx:
@@ -28,6 +48,9 @@ services:
       SERVER_PORT: 8000
     command: /bin/bash -c "envsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     restart: always
+
+# volumes:
+#   pgdata:
 
 networks:
   mynet:

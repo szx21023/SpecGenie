@@ -14,14 +14,15 @@ async def init_app(app):
 
     class SpecAnswerEngine:
         def __init__(
-            self, db_url: str, embed_model: str, llm_model: str, llm_struct_model: str, k: int = 20, distance: str = "cosine",
+            self, db_url: str, embed_model: str, llm_model: str, llm_struct_model: str,
+            api_key: str, k: int = 20, distance: str = "cosine",
         ):
             # DB session
             self.engine_async = create_async_engine(db_url)
             self.SessionAsync = async_sessionmaker(self.engine_async, expire_on_commit=False)
 
             # Embeddings
-            self.embeddings = OpenAIEmbeddings(model=embed_model)
+            self.embeddings = OpenAIEmbeddings(model=embed_model, api_key=api_key)
 
             # Retriever
             self.cus_retriever = PgRagRetriever(
@@ -29,16 +30,17 @@ async def init_app(app):
             )
 
             # LLM
-            self.llm = ChatOpenAI(model=llm_model, temperature=0)
+            self.llm = ChatOpenAI(model=llm_model, temperature=0, api_key=api_key)
             self.m_retriever = MultiQueryRetriever.from_llm(
                 retriever=self.cus_retriever, llm=self.llm
             )
 
             # 結構化輸出的 LLM
             self.llm_struct_model = llm_struct_model
+            self.api_key = api_key
 
         async def answer_with_spec(self, question: str, output_format: BaseModel, max_ctx_chars: int = 3000) -> BaseModel:
-            llm_struct = ChatOpenAI(model=self.llm_struct_model, temperature=0).with_structured_output(output_format)
+            llm_struct = ChatOpenAI(model=self.llm_struct_model, temperature=0, api_key=self.api_key).with_structured_output(output_format)
 
             docs = await self.m_retriever.ainvoke(question)
             context = "\n\n".join((d.page_content or "").strip() for d in docs if d.page_content)[:max_ctx_chars]
@@ -50,4 +52,5 @@ async def init_app(app):
         embed_model=EMBED_MODEL,
         llm_model=LLM_MODEL,
         llm_struct_model=LLM_STRUCT_MODEL,
+        api_key=app.state.config['OPENAI_API_KEY'],
     )
